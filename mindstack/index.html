@@ -30,7 +30,7 @@
 	<body>
 		<div id="wrapper">
 			<div id="logo">
-				<img id="image" src="icon_big.png" style="width:190px; height:190px" onmousedown="function(){recognition.start()}" onmouseup="function(){recognition.stop()}" />
+				<img id="image" src="icon_big.png" style="width:190px; height:190px" onmousedown="startRecognition" onmouseup="stopRecognition" />
 			</div>
 			<div id="stackwrapper">
 				<div id="messagearea"><span class="defaultmessage">STACK YOUR MIND UP</span></div>
@@ -179,6 +179,14 @@
 
 		function speechRecognition() {
 			recognizing ? recognition.stop() : recognition.start();
+		}
+
+		function startRecognition() {
+			recognition.start();
+		}
+
+		function stopRecognition() {
+			recognition.stop();
 		}
 	</script>
 </html>
