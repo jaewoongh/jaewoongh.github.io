@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>MINDSTACK</title>
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<link rel="icon" type="image/png" href="icon.png" />
+		<script src="js/peg.js"></script>
+		<script src="js/sugar.js"></script>
+		<script src="js/plt.js"></script>
+		<script src="js/webspeech.js"></script>
+		<script src="js/mindstack.js"></script>
+	</head>
+
+	<grammar>
+		start				= commands:thing*												{ return Mindstack.q(commands) }
+		thing				= loopend / loopbegin / onething
+
+		onething		= o:anything* delimiter space						{ return o }
+		anything		= a:[^ ;\n\[\]]+ space									{ return a.join('') }
+
+		loopbegin		= '\[' delimiter? space									{ return ['\['] }
+		loopend			= '\]' n:number delimiter? space				{ return ['\]'].concat(n) }
+		number			= n:[0123456789]+												{ return parseInt(n.join('')) }
+
+		delimiter		= [\n;]
+		space				= [ ]*
+	</grammar>
+
+	<body>
+		<div id="wrapper">
+			<div id="logo">
+				<img id="image" src="icon_big.png" style="width:190px; height:190px" onmousedown="speechRecognition()" />
+			</div>
+			<div id="stackwrapper">
+				<div id="messagearea"><span class="defaultmessage">STACK YOUR MIND UP</span></div>
+				<div id="inputarea">
+					<input type="text" id="inputtext" size="34" onkeydown="handleInput(event)" />
+				</div>
+				<div id="stacks">&nbsp;
+				</div>
+			</div>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		// Do what should be done first
+		window.onload = function() {
+			// Initialize PLT.js
+			initPLT();
+			PLT.refresh = false;
+
+			// Initialize Mindstack.js
+			Mindstack.init();
+
+			// Set timer to where it is needed
+			var refreshStack = setInterval(showStack, 50);
+		}
+
+		// Keep keeping what is typed
+		var history = [];
+		var historyIndex = -1;
+
+		function handleInput(e) {
+			if(e.keyCode === 13 && !e.shiftKey || e === 'speech') {						// When pressed enter, send it to Mindstack
+				historyIndex = -1;
+				var input = document.getElementById('inputtext');
+				history.unshift(input.value);
+				if(history.length > 13) history.pop();
+				var result = PLT.parser.parse(input.value.trim() + '\n');
+				input.value = '';
+				showStack();
+				if(result !== true) {
+					if(['Such void', 'Many emptiness', 'So vague', 'Very nothing', 'Wow'].some(result)) {
+						document.getElementById('messagearea').innerHTML = '<span class="doge">' + result + '</span>';
+					} else {
+						document.getElementById('messagearea').innerHTML = result;
+					}
+				} else {
+					document.getElementById('messagearea').innerHTML = '<span class="defaultmessage">STACK YOUR MIND UP</span>';
+				}
+			} else if(e.keyCode === 38) {			// When pressed up arrow, show previous command
+				historyIndex++;
+				if(historyIndex >= history.length) historyIndex = history.length - 1;
+				else document.getElementById('inputtext').value = history[historyIndex];
+			} else if(e.keyCode === 40) {			// when pressed down arrow, show next command
+				historyIndex--;
+				if(historyIndex < -1) historyIndex = -1;
+				if(historyIndex > -1) document.getElementById('inputtext').value = history[historyIndex];
+				else document.getElementById('inputtext').value = '';
+			}
+		}
+
+		// Show Mindstack
+		function showStack() {
+			var stackcontent = '';
+			for(var i = Mindstack.stack.length-1; i >= 0; i--) {
+				if(Mindstack.stack[i].length > 1) {
+					stackcontent += '<div class="stack">' + Mindstack.stack[i][0] + '<br />';
+					for(var j = 0; j < Mindstack.stack[i].length; j++) {
+						var possiblyTimer = Mindstack.stack[i][j];
+						if(possiblyTimer.whoami == 'Timer') {
+							if(!(possiblyTimer instanceof Timer)) {
+								var timer = new Timer();
+								timer.reconstruct(possiblyTimer);
+								Mindstack.stack[i][j] = timer;
+							} else {
+								var timer = possiblyTimer;
+							}
+							if(timer.done) {
+								timer.whenTriggered();
+								Mindstack.stack[i].splice(j, 1);
+								Mindstack.overwritejournal();
+								j--;
+								continue;
+							} else {
+								stackcontent += '<br /><span style="color:#FB0">&#10710;&nbsp;';
+								stackcontent += timer.timeRemaining();
+							}
+						} else if(possiblyTimer.whoami == 'Bomb') {
+							if(!(possiblyTimer instanceof Bomb)) {
+								var bomb = new Bomb();
+								bomb.reconstruct(possiblyTimer);
+								Mindstack.stack[i][j] = bomb;
+							} else {
+								var bomb = possiblyTimer;
+							}
+							if(bomb.alive) {
+								stackcontent += '<br /><span style="color:#F53">&#9787;&nbsp;';
+								stackcontent += bomb.timeRemaining();
+							} else {
+								bomb.destroy();
+								Mindstack.stack.splice(i, 1);
+								Mindstack.overwritejournal();
+								i--;
+								break;
+							}
+						}
+					}
+					stackcontent += '</span>';
+				} else {
+					stackcontent += '<div class="stack">' + Mindstack.stack[i];
+				}
+				stackcontent += '</div>';
+			}
+			document.getElementById('stacks').innerHTML = stackcontent;
+		}
+
+
+		// Voice recognition
+		var recognizing = false;
+		var recognition = new webkitSpeechRecognition();
+		recognition.continuous = true;
+		recognition.interimResults = false;
+		recognition.lang = 'en-US';
+
+		recognition.onstart = function() {
+			recognizing = true;
+			document.getElementById('image').src = 'listening.png';
+			document.getElementById('inputtext').value = '';
+		}
+
+		recognition.onerror = function(event) {
+			throw event.error;
+		}
+
+		recognition.onend = function() {
+			recognizing = false;
+			document.getElementById('image').src = 'icon_big.png';
+			handleInput('speech');
+		}
+
+		recognition.onresult = function(event) {
+			var inputarea = document.getElementById('inputtext');
+			for(var i = event.resultIndex; i < event.results.length; ++i) {
+				inputarea.value += event.results[i][0].transcript;
+			}
+		}
+
+		function speechRecognition() {
+			recognizing ? recognition.stop() : recognition.start();
+		}
+	</script>
+</html>

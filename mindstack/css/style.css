@@ -1,0 +1,85 @@
+body {
+	font-family: 				Helvetica Neue, Helvetica;
+	background-color: 	#fff;
+}
+
+#wrapper {
+	position:						absolute;
+	left:								5%;
+	right:							5%;
+	top:								5%;
+	bottom:							5%;
+	float: 							center;
+	vertical-align: 		center;
+}
+
+#logo {
+	position:						relative;
+	right:							60%;
+	float:							right;
+	padding:						15px 15px;
+	text-align: 				center;
+}
+
+#stackwrapper {
+	position:						relative;
+	left:								40%;
+	float:							left;
+	padding:						15px 15px;
+}
+
+#messagearea {
+	position:						relative;
+	top:								0%;
+	height:							25px;
+	width:							258px;
+	padding:						5px 10px;
+	font-size: 					11px;
+	color: 							#b40;
+	font-weight: 				bold;
+}
+
+.defaultmessage {
+	color:							#000;
+	font-size:					20px;
+}
+
+.doge {
+	font-family:				Comic Sans MS;
+	color:							#0B4;
+	font-size: 					18px;
+}
+
+#inputarea {
+	position:						relative;
+	top:								0%;
+	height:							30px;
+}
+
+input[type='text'] {
+	border:							1px dotted #999;
+	border-radius:			0;
+	-webkit-appearance:	none;
+	height: 						20px;
+	font-family:				Courier, inherit;
+	font-size:					80%;
+}
+
+#stacks {
+	position:						relative;
+	top:								0%;
+	bottom:							0px;
+	width:							100%;
+	float:							center;
+}
+
+.stack {
+	position:						relative;
+	padding: 						10px 15px;
+	margin: 						15px 10px;
+	float:							center;
+	background-color: 	#444;
+	color: 							#fff;
+	text-align: 				left;
+	width: 							230px;
+}
