@@ -1,0 +1,116 @@
+<script src="sugar.js"></script>
+<script src="peg.js"></script>
+<script src="plt.js"></script>
+
+<title>Basic Arithmetic Grammar</title>
+
+<!--
+
+Full documentation: http://pegjs.majda.cz/documentation#grammar-syntax-and-semantics-parsing-expression-types
+
+'x'   : match the literal character 'x'
+x+    : match x 1 or more times
+x*    : match x 0 or more times
+x?    : match x 0 or 1 times
+!x    : match anything but the match x
+x/y   : match x or y, trying in that order
+[xyz] : match one of the literal character 'x', 'y', or 'z'
+v:x   : assign the result of the match x to the variable v
+
+-->
+
+<grammar>
+  start                 = block/number/common_sense
+  block                 = '(' ' '* r:(basic_arithmetic/number) ' '* ')' ' '* { return r; }
+  number                = decimal / integer
+  integer               = m:('-'/'+')? d:digit+ ' '* { return (m=='-'?-1:1)*parseInt(d.join('')); }
+  decimal               = m:('-'/'+')? i:digit* '.' d:digit+ ' '* { return (m=='-'?-1:1)*((i.length>0?parseInt(i.join('')):0)+Math.pow(0.1,d.length)*parseInt(d.join(''))); }
+  digit                 = [0123456789]
+  basic_arithmetic      = addition/subtraction/multiplication/division
+  addition              = '+' ' '* n:(block/number)+ { return (function addAllInN(i){return i>0 ? addAllInN(i-1)+parseFloat(n[i]) : parseFloat(n[i])})(n.length-1); }
+  subtraction           = '-' ' '* n:(block/number)+ { return n.length>1?(function subAllInN(i){return i>0 ? subAllInN(i-1)-parseFloat(n[i]) : parseFloat(n[i])})(n.length-1):-1*parseFloat(n[0]); }
+  multiplication        = '*' ' '* n:(block/number)+ { return (function multAllInN(i){return i>0 ? multAllInN(i-1)*parseFloat(n[i]) : parseFloat(n[i])})(n.length-1); }
+  division              = '/' ' '* n:(block/number)+ { return n.length>1?(function divAllInN(i){return i>0 ? divAllInN(i-1)/parseFloat(n[i]) : parseFloat(n[i])})(n.length-1):1/parseFloat(n[0]); }
+  common_sense          = s:[abcdefghijklmnopqrstuvwxyz]+ { switch(s.join('')) { case 'beer': return 'awesome'; case 'wine': return 'nice'; case 'whisky': return 'sweet'; case 'soju': return 'ooyeah'; } }
+</grammar>
+
+<h2>Numbers and Basic Arithmetic</h2>
+
+<h3>Homework: Make this work</h3>
+<code>(+ 7 (+ 30 5))</code>
+
+<h3>Extra: How do you do alternate operators?</h3>
+<code>(- 100 (+ 29 29))</code>
+
+<h3>Extra: How do you do multiple inputs?</h3>
+<code>(+ 1 2 3 4 5 7 20)</code>
+<code>(+ 10 (- 50 45) 10 (+ 3 7) 10)</code>
+<br />
+
+<h3>Integer</h3>
+<code>65536</code>
+<code>-32768</code>
+<code>+32767</code>
+<code bad>- 32768</code>
+<code bad>++32768</code>
+<br />
+
+<h3>Decimal (look at those errors!)</h3>
+<code>3.1415926</code>
+<code>2014.02</code>
+<code>-2014.02</code>
+<code>.01</code>
+<code>-.01</code>
+<code bad>55.</code>
+<br />
+
+<h3>Addition</h3>
+<code>(+ 7)</code>
+<code>(+ 7 13)</code>
+<code>(+ 7 13 20)</code>
+<code>(+ 7 13 20 -33)</code>
+<code>(+ +3 .14 15 -9.2)</code>
+<code>(+10 1)</code>
+<code>(++10 1)</code>
+<br />
+
+<h3>Subtraction</h3>
+<code>(- 7)</code>
+<code>(- 7 13)</code>
+<code>(- 20 13 7)</code>
+<code>(- 7 13 20 -33)</code>
+<code>(- 3 .14 15 -9.2)</code>
+<code>(-1 10)</code>
+<br />
+
+<h3>Multiplication</h3>
+<code>(* 6 9)</code>
+<code>(* 256 256 .5)</code>
+<code>(* 33 -33)</code>
+<code>(* 11)</code>
+<code>(*-10 1)</code>
+<br />
+
+<h3>Division</h3>
+<code>(/ 54 9)</code>
+<code>(/ 256 256 0.5)</code>
+<code>(/ 33 -33)</code>
+<code>(/ 5)</code>
+<code>(/1 10)</code>
+<br />
+
+<h3>A Bit Complex</h3>
+<code>(- 100 (/ 50 2 5))</code>
+<code>(+ (* 2 3) 4)</code>
+<code>(* (+ 2 3) (+ 6 3))</code>
+<code>(/ (+ 20 30) .5 (* 2 5 2) -0.1 5)</code>
+<code>(+ (* 2 3)4)</code>
+<code>(+(* 2 3) 4)</code>
+<code>(* (+ 2 3)(+ 6 3))</code>
+<code bad>(20 + 5)</code>
+<code bad>(/ 50 5 0)</code>
+<code bad>(/0)</code>
+<br />
+
+<h3>Common Sense</h3>
+<code>beer</code>
